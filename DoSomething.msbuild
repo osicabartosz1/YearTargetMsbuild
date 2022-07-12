@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<PropertyGroup>
+		<Name>Homer</Name>
+		<FullName>$(Name) Simpson0</FullName>
+		<FullName>$(Name) Simpson1</FullName>
+		<FullName>$(Name) Simpson2</FullName>
+		<PicsPath>C:\Users\dell\Documents\KursyMaj\msbuild-exercise-files-master\msbuild-exercise-files-master\msbuild-1-exercise-files\code\after\pics\*.jpg</PicsPath>
+		<Registry>$(registry:HKEY_CURRENT_USER\SOFTWARE\Classes\.html)</Registry>
+		<Today>$([System.DateTime]::Now.ToString("yyyy.MM.dd"))</Today>
+		<Iteration>5</Iteration>
+	</PropertyGroup>
+		<PropertyGroup>
+			<SourceFilename>Module1</SourceFilename>
+			<SourceFileExtension>vb</SourceFileExtension>
+		</PropertyGroup>
+	<ItemGroup>
+		<Compile Include="MyTasks.cs"/>
+		<Pics Include="$(PicsPath)" />
+	</ItemGroup>
+	<ItemGroup>
+		<Simpsons Include="Homer">
+		<CatchPhrase>Doh</CatchPhrase>
+		</Simpsons>
+		<Simpsons Include="Marge">
+		<CatchPhrase>Mmmmmmmmph</CatchPhrase>
+		</Simpsons>
+		<Simpsons Include="Bart">
+		<CatchPhrase>Eat my shorts</CatchPhrase>
+		</Simpsons>
+		<Simpsons Include="Lisa">
+		<CatchPhrase>Bart!</CatchPhrase>
+		</Simpsons>
+		<Simpsons Include="Maggie">
+		<CatchPhrase>slurp, slurp, slurp</CatchPhrase>
+		</Simpsons>
+	</ItemGroup>
+	<Target Name="ListSimpsons">
+		<Message Text="@(Simpsons)" />
+		<Message Text="@(Simpsons->'%(CatchPhrase)')" />
+	</Target>
+	<Target Name="ListPics">
+		<Message Text="@(Pics)"/>
+		<Message Text="@(Pics->'%(ModifiedTime)')"/>
+	</Target>
+	<Target Name="ReservedProps">
+		<Message Text="MSBuildProjectDirectory : $(MSBuildProjectDirectory)" />
+		<Message Text="LOGONSERVER : $(LOGONSERVER)" />
+		<Message Text="ALLUSERSPROFILE : $(ALLUSERSPROFILE)" />
+		<Message Text="APPDATA : $(APPDATA)" />
+		<Message Text="Path : $(Path)" />
+		<Message Text="PicsPath2 : $(PicsPath2)" />
+		<Message Text="Today : $(Today)" />
+		<Message Text="NewFile : $(NewFile)" />
+	</Target>
+	<Target Name="GoodbyeWorld">
+		<Message Text="Goodbye, $(FullName)!" />
+	</Target>
+	<Target Name="HelloWorld">
+		<Message Text="Hello, $(Name)!" />
+	</Target>
+	<Target Name="CreateProperties">
+		<Message Text="Hello, $(FullName)!" Importance="high" />
+		<CreateProperty
+			Value="$(SourceFilename).$(SourceFileExtension)">
+			<Output
+				TaskParameter="Value"
+				PropertyName="NewFile" />
+		</CreateProperty>
+	</Target>
+	<Target Name="CopyFiles">
+		<ItemGroup>
+		<!-- Because this ItemGroup is inside the target, this will enumerate
+		 all files just before calling Copy. If the ItemGroup were outside
+		 the target , it would enumerate the files during evaluation, before
+		 the build starts, which may miss files created during the build. -->
+		<MySourceFiles Include="C:\Users\dell\Documents\KursyMaj\msbuild-exercise-files-master\msbuild-exercise-files-master\msbuild-1-exercise-files\code\after\pics\**\*.*"/>
+		</ItemGroup>
+
+		<Copy
+		SourceFiles="@(MySourceFiles)"
+		DestinationFiles="C:\Users\dell\Documents\KursyMaj\msbuild-exercise-files-master\msbuild-exercise-files-master\msbuild-1-exercise-files\code\after\picsdest\%(RecursiveDir)%(Filename)%(Extension)"
+		/>
+	</Target>
+	<ItemGroup>
+		<MySpecialItem Include="one" />
+		<MySpecialItem Include="two" />
+		<MySpecialItem Include="three" />
+	</ItemGroup>
+	<Target Name="MyTarget">
+		<Exec Command="echo %(MySpecialItem.Identity)"/>
+	</Target>
+	<Target Name="CallAllOtherTargets">
+		<CallTarget Targets="ListSimpsons"/>
+		<CallTarget Targets="ListPics"/>
+		<CallTarget Targets="CreateProperties"/>
+		<CallTarget Targets="ReservedProps"/>
+		<CallTarget Targets="CopyFiles"/>
+	</Target>
+	
+	<Target Name="CallOtherTargets0" Condition="'$(Iteration)'=='5'">
+		<Message Text="$(MSBuildProjectDirectory)\AddTask.dll" Importance="high" />
+		<MSBuild Projects="@(Compile)" Targets="Build" />
+
+		
+		<!-- <Csc Sources="@(Compile)" OutputAssembly="$(MSBuildProjectDirectory)\AddTask.dll"  TargetType="library" /> -->
+	</Target>
+
+	
+	<Target Name="CallOtherTargets" AfterTargets="CallOtherTargets0" Condition="'$(Iteration)'=='5'">
+		<PropertyGroup>
+			<Iteration>$(Iteration)-1</Iteration>
+		</PropertyGroup>
+		<Message Text="Here" Importance="high" />
+		<Exec Command="echo $(Iteration)"/>
+		<Exec Command="echo $(Toda)"/>
+		<CallTarget Targets="ListSimpsons"/>
+	</Target>
+	
+	<UsingTask TaskName="MyTasks.AddTask" AssemblyFile=".\AddTask.dll"/>
+	<Target Name="Addition">
+		<AddTask Number1="10" Number2="12">
+			<Output TaskParameter="Sum" PropertyName="CalculatedSum" />
+		</AddTask>
+		<Message Text="10 + 12 = $(CalculatedSum)" />
+	</Target>
+	
+	
+</Project>
